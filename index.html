@@ -586,46 +586,88 @@
         const submitWrap = document.querySelector('.submit-wrap');
         submitWrap.innerHTML = `
             <style>
-                @keyframes runnerBounce {
-                    0%   { transform: translateY(0px) scaleX(1); }
-                    25%  { transform: translateY(-6px) scaleX(0.97); }
-                    50%  { transform: translateY(0px) scaleX(1); }
-                    75%  { transform: translateY(-3px) scaleX(0.98); }
-                    100% { transform: translateY(0px) scaleX(1); }
-                }
                 @keyframes runnerTravel {
-                    0%   { left: -60px; }
-                    100% { left: calc(100% + 20px); }
+                    0%   { left: -100px; }
+                    100% { left: calc(100% + 40px); }
                 }
-                @keyframes legSwing {
+                @keyframes bodyBob {
+                    0%, 100% { transform: translateY(0px); }
+                    50%       { transform: translateY(-5px); }
+                }
+
+                /* FRONT leg: thigh swings forward then back */
+                @keyframes thighFront {
                     0%   { transform: rotate(-30deg); }
-                    50%  { transform: rotate(30deg); }
+                    50%  { transform: rotate(20deg); }
                     100% { transform: rotate(-30deg); }
                 }
-                @keyframes armSwing {
+                /* BACK leg: opposite phase */
+                @keyframes thighBack {
+                    0%   { transform: rotate(40deg); }
+                    50%  { transform: rotate(-10deg); }
+                    100% { transform: rotate(40deg); }
+                }
+                /* Front shin: kicks forward when thigh swings forward */
+                @keyframes shinFront {
+                    0%   { transform: rotate(-20deg); }
+                    50%  { transform: rotate(-60deg); }
+                    100% { transform: rotate(-20deg); }
+                }
+                /* Back shin: folds up behind */
+                @keyframes shinBack {
+                    0%   { transform: rotate(10deg); }
+                    50%  { transform: rotate(70deg); }
+                    100% { transform: rotate(10deg); }
+                }
+
+                /* FRONT arm: swings back (elbow bent forward) */
+                @keyframes upperArmFront {
                     0%   { transform: rotate(30deg); }
-                    50%  { transform: rotate(-30deg); }
+                    50%  { transform: rotate(-20deg); }
                     100% { transform: rotate(30deg); }
                 }
+                /* BACK arm: swings forward (elbow bent back) */
+                @keyframes upperArmBack {
+                    0%   { transform: rotate(-40deg); }
+                    50%  { transform: rotate(20deg); }
+                    100% { transform: rotate(-40deg); }
+                }
+                @keyframes forearmFront {
+                    0%   { transform: rotate(-50deg); }
+                    50%  { transform: rotate(-80deg); }
+                    100% { transform: rotate(-50deg); }
+                }
+                @keyframes forearmBack {
+                    0%   { transform: rotate(60deg); }
+                    50%  { transform: rotate(90deg); }
+                    100% { transform: rotate(60deg); }
+                }
+
                 .runner-track {
                     position: relative;
-                    height: 80px;
+                    height: 120px;
                     overflow: hidden;
                     margin: 16px 0 8px;
+                    border-bottom: 3px solid #231F20;
                 }
                 .runner-wrap {
                     position: absolute;
-                    bottom: 8px;
-                    animation: runnerTravel 4s linear infinite;
+                    bottom: 3px;
+                    animation: runnerTravel 8s linear infinite;
                 }
-                .runner-svg {
-                    animation: runnerBounce 0.6s ease-in-out infinite;
+                .runner-figure {
+                    animation: bodyBob 0.45s ease-in-out infinite;
                     display: block;
                 }
-                .runner-leg-front { animation: legSwing 0.6s ease-in-out infinite; transform-origin: 18px 0px; }
-                .runner-leg-back  { animation: legSwing 0.6s ease-in-out infinite reverse; transform-origin: 18px 0px; }
-                .runner-arm-front { animation: armSwing 0.6s ease-in-out infinite; transform-origin: 18px 2px; }
-                .runner-arm-back  { animation: armSwing 0.6s ease-in-out infinite reverse; transform-origin: 18px 2px; }
+                .thigh-front    { animation: thighFront    0.45s ease-in-out infinite; transform-origin: 0px 0px; }
+                .thigh-back     { animation: thighBack     0.45s ease-in-out infinite; transform-origin: 0px 0px; }
+                .shin-front     { animation: shinFront     0.45s ease-in-out infinite; transform-origin: 0px 0px; }
+                .shin-back      { animation: shinBack      0.45s ease-in-out infinite; transform-origin: 0px 0px; }
+                .upper-arm-front { animation: upperArmFront 0.45s ease-in-out infinite; transform-origin: 0px 0px; }
+                .upper-arm-back  { animation: upperArmBack  0.45s ease-in-out infinite; transform-origin: 0px 0px; }
+                .forearm-front   { animation: forearmFront  0.45s ease-in-out infinite; transform-origin: 0px 0px; }
+                .forearm-back    { animation: forearmBack   0.45s ease-in-out infinite; transform-origin: 0px 0px; }
+
                 .runner-msg {
                     font-family: 'Oswald', sans-serif;
                     font-size: 15px;
@@ -634,42 +676,70 @@
                     letter-spacing: 1px;
                     text-transform: uppercase;
                     margin-top: 4px;
-                    line-height: 1.5;
+                    line-height: 1.6;
                 }
                 .runner-sub {
                     font-family: 'Playfair Display', serif;
                     font-style: italic;
                     font-size: 13px;
                     color: #888;
-                    margin-top: 4px;
+                    margin-top: 6px;
                 }
             </style>
 
             <div class="runner-track">
                 <div class="runner-wrap">
-                    <svg class="runner-svg" width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Head -->
-                        <circle cx="24" cy="8" r="7" fill="#EE3B43"/>
-                        <!-- Body -->
-                        <rect x="19" y="15" width="10" height="18" rx="4" fill="#231F20"/>
-                        <!-- Back arm -->
-                        <g class="runner-arm-back">
-                            <rect x="10" y="17" width="10" height="4" rx="2" fill="#aaa" transform="rotate(20 18 17)"/>
+                    <!--
+                        Figure faces RIGHT (positive x = forward).
+                        Hip pivot at (40, 62). Shoulder at (43, 28).
+                        Torso leans forward ~15 deg.
+                    -->
+                    <svg class="runner-figure" viewBox="0 0 90 110" width="90" height="110" xmlns="http://www.w3.org/2000/svg">
+
+                        <!-- HEAD -->
+                        <circle cx="50" cy="9" r="9" fill="#111"/>
+
+                        <!-- TORSO (leaning forward to the right) -->
+                        <line x1="50" y1="18" x2="40" y2="62" stroke="#111" stroke-width="7" stroke-linecap="round"/>
+
+                        <!-- ── BACK ARM (left arm, swings forward when running right) ── -->
+                        <!-- shoulder at (46,26) -->
+                        <g class="upper-arm-back" style="transform-origin:46px 26px">
+                            <line x1="46" y1="26" x2="36" y2="44" stroke="#111" stroke-width="6" stroke-linecap="round"/>
+                            <g class="forearm-back" style="transform-origin:36px 44px">
+                                <line x1="36" y1="44" x2="24" y2="38" stroke="#111" stroke-width="6" stroke-linecap="round"/>
+                            </g>
                         </g>
-                        <!-- Front arm -->
-                        <g class="runner-arm-front">
-                            <rect x="26" y="17" width="10" height="4" rx="2" fill="#231F20" transform="rotate(-20 28 17)"/>
+
+                        <!-- ── FRONT ARM (right arm, swings back when running right) ── -->
+                        <g class="upper-arm-front" style="transform-origin:46px 26px">
+                            <line x1="46" y1="26" x2="56" y2="44" stroke="#111" stroke-width="6" stroke-linecap="round"/>
+                            <g class="forearm-front" style="transform-origin:56px 44px">
+                                <line x1="56" y1="44" x2="68" y2="38" stroke="#111" stroke-width="6" stroke-linecap="round"/>
+                            </g>
                         </g>
-                        <!-- Back leg -->
-                        <g class="runner-leg-back">
-                            <rect x="17" y="32" width="5" height="16" rx="2.5" fill="#aaa"/>
-                            <rect x="14" y="46" width="10" height="4" rx="2" fill="#aaa"/>
+
+                        <!-- ── BACK LEG (left leg — pushes off behind) ── -->
+                        <!-- hip at (40,62) -->
+                        <g class="thigh-back" style="transform-origin:40px 62px">
+                            <line x1="40" y1="62" x2="50" y2="84" stroke="#111" stroke-width="7" stroke-linecap="round"/>
+                            <g class="shin-back" style="transform-origin:50px 84px">
+                                <line x1="50" y1="84" x2="62" y2="100" stroke="#111" stroke-width="7" stroke-linecap="round"/>
+                                <!-- foot pointing back/down -->
+                                <line x1="62" y1="100" x2="76" y2="104" stroke="#111" stroke-width="6" stroke-linecap="round"/>
+                            </g>
                         </g>
-                        <!-- Front leg -->
-                        <g class="runner-leg-front">
-                            <rect x="23" y="32" width="5" height="16" rx="2.5" fill="#EE3B43"/>
-                            <rect x="24" y="46" width="10" height="4" rx="2" fill="#EE3B43"/>
+
+                        <!-- ── FRONT LEG (right leg — strides forward) ── -->
+                        <g class="thigh-front" style="transform-origin:40px 62px">
+                            <line x1="40" y1="62" x2="28" y2="82" stroke="#111" stroke-width="7" stroke-linecap="round"/>
+                            <g class="shin-front" style="transform-origin:28px 82px">
+                                <line x1="28" y1="82" x2="18" y2="100" stroke="#111" stroke-width="7" stroke-linecap="round"/>
+                                <!-- foot pointing forward -->
+                                <line x1="18" y1="100" x2="4" y2="105" stroke="#111" stroke-width="6" stroke-linecap="round"/>
+                            </g>
                         </g>
+
                     </svg>
                 </div>
             </div>
