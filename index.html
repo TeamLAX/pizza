@@ -438,6 +438,14 @@
             </div>
         </div>
 
+        <!-- Address -->
+        <div class="field-row single">
+            <div class="field-group">
+                <label>Delivery Address</label>
+                <input type="text" name="address" placeholder="123 Main St, Los Angeles, CA 90001" required>
+            </div>
+        </div>
+
         <!-- Phone -->
         <div class="field-row single">
             <div class="field-group">
@@ -550,6 +558,7 @@
 
         const payload = {
             deliveryTime: data.get('deliveryTime'),
+            address:      data.get('address'),
             firstName:    data.get('firstName'),
             lastName:     data.get('lastName'),
             phone:        data.get('phone'),
