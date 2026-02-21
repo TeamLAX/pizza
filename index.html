@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shakey's Pizza – Delivery Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red:    #EE3B43;
+            --yellow: #FEDE02;
+            --black:  #231F20;
+            --white:  #FFFFFF;
+            --cream:  #FFF8E7;
+            --red-dark: #C0272D;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background-color: var(--black);
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 38px,
+                    rgba(254,222,2,0.04) 38px,
+                    rgba(254,222,2,0.04) 40px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 38px,
+                    rgba(254,222,2,0.04) 38px,
+                    rgba(254,222,2,0.04) 40px
+                );
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 20px 60px;
+        }
+
+        /* ── Outer card ── */
+        .card {
+            width: 100%;
+            max-width: 620px;
+            background: var(--cream);
+
+            /* Double black border as specified */
+            border: 6px solid var(--black);
+            outline: 6px solid var(--black);
+            outline-offset: 6px;
+
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 0 0 12px var(--yellow), 0 20px 60px rgba(0,0,0,0.7);
+            animation: fadeUp 0.6s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Header ── */
+        .header {
+            background: var(--red);
+            padding: 28px 30px 22px;
+            text-align: center;
+            border-bottom: 6px solid var(--black);
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            display: block;
+            height: 6px;
+            background: var(--yellow);
+            position: absolute;
+            bottom: -12px;
+            left: 0; right: 0;
+        }
+
+        .logo-text {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 13px;
+            letter-spacing: 4px;
+            color: var(--yellow);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .brand-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -1px;
+            line-height: 1;
+            text-shadow: 3px 3px 0 var(--black);
+        }
+
+        .brand-sub {
+            font-family: 'Oswald', sans-serif;
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--yellow);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .b2v-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--red);
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--yellow);
+        }
+
+        .tagline {
+            margin-top: 10px;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 13px;
+            color: rgba(255,255,255,0.75);
+        }
+
+        /* ── Form body ── */
+        .form-body {
+            padding: 36px 32px 40px;
+            margin-top: 6px; /* space for yellow stripe */
+        }
+
+        .section-label {
+            font-family: 'Oswald', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--red);
+            margin-bottom: 10px;
+        }
+
+        /* ── Delivery time ── */
+        .delivery-block {
+            background: var(--black);
+            border-radius: 4px;
+            padding: 18px 20px;
+            margin-bottom: 28px;
+            border: 3px solid var(--yellow);
+        }
+
+        .delivery-block .section-label {
+            color: var(--yellow);
+            margin-bottom: 14px;
+        }
+
+        .time-select-wrap {
+            display: flex;
+        }
+
+        select.time-select {
+            flex: 1;
+            background: #1a1616;
+            color: var(--yellow);
+            border: 2px solid var(--yellow);
+            border-radius: 3px;
+            padding: 10px 14px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23FEDE02' d='M1.41 0L6 4.58L10.59 0L12 1.41l-6 6l-6-6z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+            transition: border-color 0.2s;
+        }
+
+        select.time-select:focus {
+            outline: none;
+            border-color: var(--white);
+        }
+
+        /* ── Field rows ── */
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .field-row.single {
+            grid-template-columns: 1fr;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field-group label {
+            font-family: 'Oswald', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--black);
+        }
+
+        .field-group input[type="text"],
+        .field-group input[type="tel"],
+        .field-group input[type="email"],
+        .field-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid #ccc;
+            border-radius: 3px;
+            font-size: 15px;
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--white);
+            color: var(--black);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field-group input:focus,
+        .field-group textarea:focus {
+            outline: none;
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(238,59,67,0.15);
+        }
+
+        .field-group textarea {
+            resize: vertical;
+            min-height: 90px;
+            line-height: 1.5;
+        }
+
+        /* ── Divider ── */
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, var(--red) 0%, var(--yellow) 50%, var(--red) 100%);
+            margin: 24px 0;
+            border-radius: 2px;
+        }
+
+        /* ── Upload receipt ── */
+        .upload-area {
+            border: 2px dashed #bbb;
+            border-radius: 4px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--white);
+            position: relative;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--red);
+            background: #fff5f5;
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .upload-main {
+            font-family: 'Oswald', sans-serif;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--black);
+            margin-bottom: 4px;
+        }
+
+        .upload-sub {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .upload-filename {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--red);
+            font-weight: 600;
+            display: none;
+        }
+
+        /* ── Submit button ── */
+        .submit-wrap {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .submit-btn {
+            background: var(--red);
+            color: var(--white);
+            border: none;
+            padding: 16px 56px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 3px;
+            border-bottom: 4px solid var(--red-dark);
+            transition: all 0.15s;
+            box-shadow: 0 4px 16px rgba(238,59,67,0.35);
+        }
+
+        .submit-btn:hover {
+            background: var(--red-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238,59,67,0.45);
+        }
+
+        .submit-btn:active {
+            transform: translateY(1px);
+            border-bottom-width: 2px;
+        }
+
+        .submit-note {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* ── Footer stripe ── */
+        .footer-stripe {
+            height: 10px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--red) 0px, var(--red) 20px,
+                var(--yellow) 20px, var(--yellow) 40px,
+                var(--black) 40px, var(--black) 60px
+            );
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 520px) {
+            body { padding: 20px 12px 40px; }
+            .form-body { padding: 28px 20px 32px; }
+            .field-row { grid-template-columns: 1fr; gap: 14px; }
+            .brand-name { font-size: 36px; }
+            .time-select-wrap { flex-direction: column; align-items: stretch; }
+            .time-select-wrap span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-text">Est. 1954 · Sacramento, CA</div>
+        <div class="brand-name">Shakey's</div>
+        <div class="brand-sub">Pizza Parlor</div>
+        <div class="tagline">"We Serve Fun at Shakey's… Also Pizza"</div>
+    </div>
+
+    <!-- Form -->
+    <form id="deliveryForm" class="form-body" onsubmit="handleSubmit(event)">
+
+        <div class="b2v-title">LAXPD B2V Delivery Option</div>
+
+        <!-- Steps -->
+        <div style="display:flex; justify-content:space-between; gap:12px; margin-bottom:28px; text-align:center;">
+
+            <div style="flex:1; background:var(--white); border:2px solid #e0e0e0; border-radius:6px; padding:16px 10px;">
+                <div style="font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:3px; color:var(--red); margin-bottom:8px;">STEP 1</div>
+                <a href="https://www.shakeys.com/locations/los-angeles/inglewood-pizza-restaurant/" target="_blank" style="text-decoration:none; color:var(--black);">
+                    <div style="font-size:28px; margin-bottom:6px;">🖥️</div>
+                    <div style="font-family:'Oswald',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--red); text-decoration:underline;">Order Online</div>
+                </a>
+            </div>
+
+            <div style="flex:1; background:var(--white); border:2px solid #e0e0e0; border-radius:6px; padding:16px 10px;">
+                <div style="font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:3px; color:var(--red); margin-bottom:8px;">STEP 2</div>
+                <div style="font-size:28px; margin-bottom:6px;">🧾</div>
+                <div style="font-family:'Oswald',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase;">Copy Your Receipt</div>
+            </div>
+
+            <div style="flex:1; background:var(--white); border:2px solid #e0e0e0; border-radius:6px; padding:16px 10px;">
+                <div style="font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:3px; color:var(--red); margin-bottom:8px;">STEP 3</div>
+                <div style="font-size:28px; margin-bottom:6px;">📝</div>
+                <div style="font-family:'Oswald',sans-serif; font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase;">Complete Form</div>
+            </div>
+
+        </div>
+
+        <!-- Delivery Time -->
+        <div class="delivery-block">
+            <div class="section-label">🕐 Delivery Time</div>
+            <div class="time-select-wrap">
+                <select class="time-select" id="deliveryTime" name="deliveryTime" required>
+                    <option value="">Select a time</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Name -->
+        <div class="field-row" style="grid-template-columns: 1fr 1fr;">
+            <div class="field-group">
+                <label>First Name</label>
+                <input type="text" name="firstName" placeholder="John" required>
+            </div>
+            <div class="field-group">
+                <label>Last Name</label>
+                <input type="text" name="lastName" placeholder="Smith" required>
+            </div>
+        </div>
+
+        <!-- Phone -->
+        <div class="field-row single">
+            <div class="field-group">
+                <label>Phone No.</label>
+                <input type="tel" name="phone" id="phone" placeholder="(555) 000-0000" required>
+            </div>
+        </div>
+
+        <!-- Email -->
+        <div class="field-row single">
+            <div class="field-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="john@example.com" required>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Upload Receipt -->
+        <div class="section-label">Upload Your Receipt</div>
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="receiptFile" name="receipt" accept="image/*,.pdf">
+            <span class="upload-icon">📄</span>
+            <div class="upload-main">Tap to upload</div>
+            <div class="upload-sub">JPG, PNG, or PDF · Max 10MB</div>
+            <div class="upload-filename" id="uploadFilename"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Questions -->
+        <div class="field-row single">
+            <div class="field-group">
+                <label>Questions / Special Instructions</label>
+                <textarea name="questions" placeholder="Any questions or special requests? Let us know…"></textarea>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="submit-wrap">
+            <button type="submit" class="submit-btn" id="submitBtn">Place Order</button>
+            <div class="submit-note">We'll confirm your delivery window by phone or email</div>
+        </div>
+
+    </form>
+
+    <div class="footer-stripe"></div>
+</div>
+
+<script>
+    // ── Populate time dropdown (10:00 AM – 10:00 PM, hourly) ──
+    const timeSel = document.getElementById('deliveryTime');
+    for (let h = 10; h <= 22; h++) {
+        const ampm = h < 12 ? 'AM' : 'PM';
+        const hour = h % 12 === 0 ? 12 : h % 12;
+        const label = `${hour}:00 ${ampm}`;
+        timeSel.add(new Option(label, `${h}:00`));
+    }
+
+    // ── Phone formatting ──
+    document.getElementById('phone').addEventListener('input', function () {
+        let v = this.value.replace(/\D/g, '').slice(0, 10);
+        if (v.length >= 7)      v = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6)}`;
+        else if (v.length >= 4) v = `(${v.slice(0,3)}) ${v.slice(3)}`;
+        else if (v.length >= 1) v = `(${v}`;
+        this.value = v;
+    });
+
+    // ── File upload display ──
+    const fileInput = document.getElementById('receiptFile');
+    const uploadArea = document.getElementById('uploadArea');
+    const filenameEl = document.getElementById('uploadFilename');
+
+    fileInput.addEventListener('change', function () {
+        if (this.files[0]) {
+            filenameEl.textContent = '✓ ' + this.files[0].name;
+            filenameEl.style.display = 'block';
+            uploadArea.style.borderColor = '#2ecc71';
+            uploadArea.style.background = '#f0fff4';
+        }
+    });
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) {
+            fileInput.files = e.dataTransfer.files;
+            filenameEl.textContent = '✓ ' + e.dataTransfer.files[0].name;
+            filenameEl.style.display = 'block';
+            uploadArea.style.borderColor = '#2ecc71';
+            uploadArea.style.background = '#f0fff4';
+        }
+    });
+
+    // ── Google Apps Script Web App URL ──
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaFOKho1c9ZigL22FNPMTJAhGl5YNYaj3lQbTlj4Mb0Cc9l-w09GWhB9sdr0Hu9V-p/exec';
+
+    // ── Form submission ──
+    async function handleSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.textContent = 'Sending…';
+        btn.disabled = true;
+
+        const form = document.getElementById('deliveryForm');
+        const data = new FormData(form);
+
+        const payload = {
+            deliveryTime: data.get('deliveryTime'),
+            firstName:    data.get('firstName'),
+            lastName:     data.get('lastName'),
+            phone:        data.get('phone'),
+            email:        data.get('email'),
+            questions:    data.get('questions') || '',
+            timestamp:    new Date().toLocaleString()
+        };
+
+        try {
+            await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            showSuccess(payload.firstName);
+        } catch (err) {
+            btn.textContent = 'Error — Try Again';
+            btn.style.background = '#c0392b';
+            btn.disabled = false;
+        }
+    }
+
+    function showSuccess(name) {
+        const submitWrap = document.querySelector('.submit-wrap');
+        submitWrap.innerHTML = `
+            <style>
+                @keyframes runnerBounce {
+                    0%   { transform: translateY(0px) scaleX(1); }
+                    25%  { transform: translateY(-6px) scaleX(0.97); }
+                    50%  { transform: translateY(0px) scaleX(1); }
+                    75%  { transform: translateY(-3px) scaleX(0.98); }
+                    100% { transform: translateY(0px) scaleX(1); }
+                }
+                @keyframes runnerTravel {
+                    0%   { left: -60px; }
+                    100% { left: calc(100% + 20px); }
+                }
+                @keyframes legSwing {
+                    0%   { transform: rotate(-30deg); }
+                    50%  { transform: rotate(30deg); }
+                    100% { transform: rotate(-30deg); }
+                }
+                @keyframes armSwing {
+                    0%   { transform: rotate(30deg); }
+                    50%  { transform: rotate(-30deg); }
+                    100% { transform: rotate(30deg); }
+                }
+                .runner-track {
+                    position: relative;
+                    height: 80px;
+                    overflow: hidden;
+                    margin: 16px 0 8px;
+                }
+                .runner-wrap {
+                    position: absolute;
+                    bottom: 8px;
+                    animation: runnerTravel 4s linear infinite;
+                }
+                .runner-svg {
+                    animation: runnerBounce 0.6s ease-in-out infinite;
+                    display: block;
+                }
+                .runner-leg-front { animation: legSwing 0.6s ease-in-out infinite; transform-origin: 18px 0px; }
+                .runner-leg-back  { animation: legSwing 0.6s ease-in-out infinite reverse; transform-origin: 18px 0px; }
+                .runner-arm-front { animation: armSwing 0.6s ease-in-out infinite; transform-origin: 18px 2px; }
+                .runner-arm-back  { animation: armSwing 0.6s ease-in-out infinite reverse; transform-origin: 18px 2px; }
+                .runner-msg {
+                    font-family: 'Oswald', sans-serif;
+                    font-size: 15px;
+                    font-weight: 600;
+                    color: var(--red);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-top: 4px;
+                    line-height: 1.5;
+                }
+                .runner-sub {
+                    font-family: 'Playfair Display', serif;
+                    font-style: italic;
+                    font-size: 13px;
+                    color: #888;
+                    margin-top: 4px;
+                }
+            </style>
+
+            <div class="runner-track">
+                <div class="runner-wrap">
+                    <svg class="runner-svg" width="48" height="64" viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Head -->
+                        <circle cx="24" cy="8" r="7" fill="#EE3B43"/>
+                        <!-- Body -->
+                        <rect x="19" y="15" width="10" height="18" rx="4" fill="#231F20"/>
+                        <!-- Back arm -->
+                        <g class="runner-arm-back">
+                            <rect x="10" y="17" width="10" height="4" rx="2" fill="#aaa" transform="rotate(20 18 17)"/>
+                        </g>
+                        <!-- Front arm -->
+                        <g class="runner-arm-front">
+                            <rect x="26" y="17" width="10" height="4" rx="2" fill="#231F20" transform="rotate(-20 28 17)"/>
+                        </g>
+                        <!-- Back leg -->
+                        <g class="runner-leg-back">
+                            <rect x="17" y="32" width="5" height="16" rx="2.5" fill="#aaa"/>
+                            <rect x="14" y="46" width="10" height="4" rx="2" fill="#aaa"/>
+                        </g>
+                        <!-- Front leg -->
+                        <g class="runner-leg-front">
+                            <rect x="23" y="32" width="5" height="16" rx="2.5" fill="#EE3B43"/>
+                            <rect x="24" y="46" width="10" height="4" rx="2" fill="#EE3B43"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="runner-msg">We've got a runner bringing your order,</div>
+            <div class="runner-msg">this will be good practice for them.</div>
+            <div class="runner-sub">Sit tight, ${name} — you'll hear from us soon!</div>
+        `;
+    }
+</script>
+
+</body>
+</html>
