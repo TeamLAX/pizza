@@ -556,15 +556,35 @@
         const form = document.getElementById('deliveryForm');
         const data = new FormData(form);
 
+        // ── Convert receipt file to base64 if provided ──
+        let receiptBase64 = '';
+        let receiptMime   = '';
+        let receiptName   = '';
+        const fileInput = document.getElementById('receiptFile');
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            receiptMime = file.type || 'application/octet-stream';
+            receiptName = file.name;
+            receiptBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload  = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = () => reject(new Error('File read failed'));
+                reader.readAsDataURL(file);
+            });
+        }
+
         const payload = {
-            deliveryTime: data.get('deliveryTime'),
-            address:      data.get('address'),
-            firstName:    data.get('firstName'),
-            lastName:     data.get('lastName'),
-            phone:        data.get('phone'),
-            email:        data.get('email'),
-            questions:    data.get('questions') || '',
-            timestamp:    new Date().toLocaleString()
+            deliveryTime:  data.get('deliveryTime'),
+            address:       data.get('address'),
+            firstName:     data.get('firstName'),
+            lastName:      data.get('lastName'),
+            phone:         data.get('phone'),
+            email:         data.get('email'),
+            questions:     data.get('questions') || '',
+            timestamp:     new Date().toLocaleString(),
+            receiptBase64: receiptBase64,
+            receiptMime:   receiptMime,
+            receiptName:   receiptName
         };
 
         try {
