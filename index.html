@@ -418,7 +418,7 @@
 
         <!-- Delivery Time -->
         <div class="delivery-block">
-            <div class="section-label">🕐 Delivery Time</div>
+            <div class="section-label">🕐 Indicate Your Pick-Up Time With Shakey's</div>
             <div class="time-select-wrap">
                 <select class="time-select" id="deliveryTime" name="deliveryTime" required>
                     <option value="">Select a time</option>
@@ -430,11 +430,11 @@
         <div class="field-row" style="grid-template-columns: 1fr 1fr;">
             <div class="field-group">
                 <label>First Name</label>
-                <input type="text" name="firstName" placeholder="John" required>
+                <input type="text" name="firstName" placeholder="First" required>
             </div>
             <div class="field-group">
                 <label>Last Name</label>
-                <input type="text" name="lastName" placeholder="Smith" required>
+                <input type="text" name="lastName" placeholder="Last" required>
             </div>
         </div>
 
@@ -467,9 +467,9 @@
         <!-- Upload Receipt -->
         <div class="section-label">Upload Your Receipt</div>
         <div class="upload-area" id="uploadArea">
-            <input type="file" id="receiptFile" name="receipt" accept="image/*,.pdf">
+            <input type="file" id="receiptFile" name="receipt" accept="image/*,.pdf" required>
             <span class="upload-icon">📄</span>
-            <div class="upload-main">Tap to upload</div>
+            <div class="upload-main">Tap to upload your Shakey's receipt</div>
             <div class="upload-sub">JPG, PNG, or PDF · Max 10MB</div>
             <div class="upload-filename" id="uploadFilename"></div>
         </div>
@@ -480,7 +480,7 @@
         <div class="field-row single">
             <div class="field-group">
                 <label>Questions / Special Instructions</label>
-                <textarea name="questions" placeholder="Any questions or special requests? Let us know…"></textarea>
+                <textarea name="questions" placeholder="Include any gate or access codes needed for delivery…"></textarea>
             </div>
         </div>
 
@@ -498,7 +498,7 @@
 <script>
     // ── Populate time dropdown (10:00 AM – 10:00 PM, hourly) ──
     const timeSel = document.getElementById('deliveryTime');
-    for (let h = 10; h <= 22; h++) {
+    for (let h = 11; h <= 22; h++) {
         const ampm = h < 12 ? 'AM' : 'PM';
         const hour = h % 12 === 0 ? 12 : h % 12;
         const label = `${hour}:00 ${ampm}`;
