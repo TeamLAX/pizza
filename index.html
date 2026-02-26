@@ -164,33 +164,93 @@
             margin-bottom: 14px;
         }
 
-        .time-select-wrap {
-            display: flex;
+        .time-picker-wrap {
+            position: relative;
+            height: 150px;
+            overflow: hidden;
+            border-radius: 4px;
         }
 
-        select.time-select {
-            flex: 1;
-            background: #1a1616;
-            color: var(--yellow);
+        /* Gradient fades top and bottom */
+        .time-picker-wrap::before,
+        .time-picker-wrap::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0;
+            height: 46px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .time-picker-wrap::before {
+            top: 0;
+            background: linear-gradient(to bottom, var(--black) 0%, transparent 100%);
+        }
+        .time-picker-wrap::after {
+            bottom: 0;
+            background: linear-gradient(to top, var(--black) 0%, transparent 100%);
+        }
+
+        /* Highlight band for center slot */
+        .time-picker-highlight {
+            position: absolute;
+            top: 50px;
+            left: 0; right: 0;
+            height: 50px;
             border: 2px solid var(--yellow);
-            border-radius: 3px;
-            padding: 10px 14px;
+            border-radius: 4px;
+            background: rgba(254,222,2,0.08);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .time-picker-scroll {
+            height: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .time-picker-scroll::-webkit-scrollbar { display: none; }
+
+        .time-picker-scroll .tp-pad {
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .time-slot {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            scroll-snap-align: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            color: rgba(254,222,2,0.35);
+            cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+            user-select: none;
+        }
+
+        .time-slot.active {
+            color: var(--yellow);
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .time-slot.selected {
+            color: var(--white);
+            text-shadow: 0 0 12px rgba(254,222,2,0.5);
+        }
+
+        .time-no-slots {
+            text-align: center;
             font-family: 'Oswald', sans-serif;
             font-size: 15px;
-            font-weight: 500;
-            letter-spacing: 1px;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23FEDE02' d='M1.41 0L6 4.58L10.59 0L12 1.41l-6 6l-6-6z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 36px;
-            transition: border-color 0.2s;
-        }
-
-        select.time-select:focus {
-            outline: none;
-            border-color: var(--white);
+            color: var(--yellow);
+            letter-spacing: 2px;
+            padding: 20px;
         }
 
         /* ── Field rows ── */
@@ -218,6 +278,20 @@
             letter-spacing: 3px;
             text-transform: uppercase;
             color: var(--black);
+        }
+
+        .field-group label .req {
+            color: var(--red);
+            margin-left: 2px;
+        }
+
+        .section-label .req {
+            color: var(--red);
+            margin-left: 2px;
+        }
+
+        .delivery-block .section-label .req {
+            color: var(--white);
         }
 
         .field-group input[type="text"],
@@ -369,8 +443,6 @@
             .form-body { padding: 28px 20px 32px; }
             .field-row { grid-template-columns: 1fr; gap: 14px; }
             .brand-name { font-size: 36px; }
-            .time-select-wrap { flex-direction: column; align-items: stretch; }
-            .time-select-wrap span { display: none; }
         }
     </style>
 </head>
@@ -418,22 +490,22 @@
 
         <!-- Delivery Time -->
         <div class="delivery-block">
-            <div class="section-label">🕐 Indicate Your Pick-Up Time With Shakey's</div>
-            <div class="time-select-wrap">
-                <select class="time-select" id="deliveryTime" name="deliveryTime" required>
-                    <option value="">Select a time</option>
-                </select>
+            <div class="section-label">🕐 Indicate Your Pick-Up Time With Shakey's <span class="req">*</span></div>
+            <input type="hidden" id="deliveryTime" name="deliveryTime" required>
+            <div class="time-picker-wrap" id="timePickerWrap">
+                <div class="time-picker-highlight"></div>
+                <div class="time-picker-scroll" id="timeScroll"></div>
             </div>
         </div>
 
         <!-- Name -->
         <div class="field-row" style="grid-template-columns: 1fr 1fr;">
             <div class="field-group">
-                <label>First Name</label>
+                <label>First Name <span class="req">*</span></label>
                 <input type="text" name="firstName" placeholder="First" required>
             </div>
             <div class="field-group">
-                <label>Last Name</label>
+                <label>Last Name <span class="req">*</span></label>
                 <input type="text" name="lastName" placeholder="Last" required>
             </div>
         </div>
@@ -441,7 +513,7 @@
         <!-- Address -->
         <div class="field-row single">
             <div class="field-group">
-                <label>Delivery Address</label>
+                <label>Delivery Address <span class="req">*</span></label>
                 <input type="text" name="address" placeholder="123 Main St, Los Angeles, CA 90001" required>
             </div>
         </div>
@@ -449,7 +521,7 @@
         <!-- Phone -->
         <div class="field-row single">
             <div class="field-group">
-                <label>Phone No.</label>
+                <label>Phone No. <span class="req">*</span></label>
                 <input type="tel" name="phone" id="phone" placeholder="(555) 000-0000" required>
             </div>
         </div>
@@ -457,7 +529,7 @@
         <!-- Email -->
         <div class="field-row single">
             <div class="field-group">
-                <label>Email</label>
+                <label>Email <span class="req">*</span></label>
                 <input type="email" name="email" placeholder="john@example.com" required>
             </div>
         </div>
@@ -465,7 +537,7 @@
         <div class="divider"></div>
 
         <!-- Upload Receipt -->
-        <div class="section-label">Upload Your Receipt</div>
+        <div class="section-label">Upload Your Receipt <span class="req">*</span></div>
         <div class="upload-area" id="uploadArea">
             <input type="file" id="receiptFile" name="receipt" accept="image/*,.pdf" required>
             <span class="upload-icon">📄</span>
@@ -496,14 +568,129 @@
 </div>
 
 <script>
-    // ── Populate time dropdown (10:00 AM – 10:00 PM, hourly) ──
-    const timeSel = document.getElementById('deliveryTime');
-    for (let h = 11; h <= 22; h++) {
+    // ── Time Scroll Wheel Picker ──
+    // Half-hour slots from 11:00 AM – 10:00 PM on March 4, 2026
+    // Each slot expires 12 min after its time, except the last which expires with the prior slot
+    function buildTimeSlots() {
+        const slots = [];
+        for (let h = 11; h <= 22; h++) {
+            for (let m = 0; m < 60; m += 30) {
+                if (h === 22 && m === 30) break; // stop at 10:00 PM
+                slots.push({ h, m });
+            }
+        }
+        return slots;
+    }
+
+    function formatTime(h, m) {
         const ampm = h < 12 ? 'AM' : 'PM';
         const hour = h % 12 === 0 ? 12 : h % 12;
-        const label = `${hour}:00 ${ampm}`;
-        timeSel.add(new Option(label, `${h}:00`));
+        const min = m === 0 ? '00' : '30';
+        return `${hour}:${min} ${ampm}`;
     }
+
+    function getAvailableSlots() {
+        const allSlots = buildTimeSlots();
+        const now = new Date();
+
+        // Build expiration for each slot
+        return allSlots.filter((slot, i) => {
+            const isLast = (i === allSlots.length - 1);
+            let expiresAt;
+            if (isLast) {
+                // Last slot expires with prior slot's expiration
+                const prev = allSlots[i - 1];
+                expiresAt = new Date(2026, 2, 4, prev.h, prev.m + 12, 0);
+            } else {
+                expiresAt = new Date(2026, 2, 4, slot.h, slot.m + 12, 0);
+            }
+            return now < expiresAt;
+        });
+    }
+
+    let selectedTimeValue = '';
+
+    function populateWheel() {
+        const scroll = document.getElementById('timeScroll');
+        const hiddenInput = document.getElementById('deliveryTime');
+        const wrap = document.getElementById('timePickerWrap');
+        const available = getAvailableSlots();
+
+        if (available.length === 0) {
+            scroll.innerHTML = '<div class="time-no-slots">No times available</div>';
+            wrap.style.height = 'auto';
+            return;
+        }
+
+        scroll.innerHTML = '';
+        // Top padding so first item can center
+        const padTop = document.createElement('div');
+        padTop.className = 'tp-pad';
+        scroll.appendChild(padTop);
+
+        available.forEach((slot, i) => {
+            const el = document.createElement('div');
+            el.className = 'time-slot';
+            el.dataset.value = `${slot.h}:${slot.m === 0 ? '00' : '30'}`;
+            el.dataset.index = i;
+            el.textContent = formatTime(slot.h, slot.m);
+            el.addEventListener('click', () => {
+                // Scroll to center this item
+                const targetTop = el.offsetTop - 50; // 50px = top pad to center
+                scroll.scrollTo({ top: targetTop, behavior: 'smooth' });
+            });
+            scroll.appendChild(el);
+        });
+
+        // Bottom padding so last item can center
+        const padBot = document.createElement('div');
+        padBot.className = 'tp-pad';
+        scroll.appendChild(padBot);
+
+        // Handle scroll to detect center item
+        function updateActive() {
+            const scrollTop = scroll.scrollTop;
+            const slots = scroll.querySelectorAll('.time-slot');
+            let closest = null;
+            let closestDist = Infinity;
+
+            slots.forEach(s => {
+                const slotCenter = s.offsetTop - scroll.offsetTop + 25; // 25 = half slot height
+                const viewCenter = scrollTop + 75; // 75 = half of 150px container
+                const dist = Math.abs(slotCenter - viewCenter);
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closest = s;
+                }
+            });
+
+            slots.forEach(s => s.classList.remove('active'));
+            if (closest) {
+                closest.classList.add('active');
+                hiddenInput.value = closest.dataset.value;
+                selectedTimeValue = closest.dataset.value;
+            }
+        }
+
+        scroll.addEventListener('scroll', updateActive);
+        // Initialize
+        requestAnimationFrame(() => {
+            scroll.scrollTop = 0;
+            updateActive();
+        });
+
+        // Restore selection if still available
+        if (selectedTimeValue) {
+            const match = scroll.querySelector(`[data-value="${selectedTimeValue}"]`);
+            if (match) {
+                const targetTop = match.offsetTop - 50;
+                scroll.scrollTo({ top: targetTop, behavior: 'auto' });
+            }
+        }
+    }
+
+    populateWheel();
+    setInterval(populateWheel, 30000);
 
     // ── Phone formatting ──
     document.getElementById('phone').addEventListener('input', function () {
