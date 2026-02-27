@@ -444,6 +444,27 @@
             .field-row { grid-template-columns: 1fr; gap: 14px; }
             .brand-name { font-size: 36px; }
         }
+        /* ── WW sprite ── */
+        .ww-sprite {
+            width: 209px; height: 220px;
+            background-image: url('https://teamlax.github.io/pizza/ww.png');
+            background-size: 1254px 220px;
+            background-repeat: no-repeat;
+            background-position: 0px 0px;
+            animation: wwPlay 0.5s steps(1, end) infinite;
+            margin: 16px auto 8px;
+            display: block;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        @keyframes wwPlay {
+            0%   { background-position:    0px 0px; }
+            17%  { background-position: -209px 0px; }
+            33%  { background-position: -418px 0px; }
+            50%  { background-position: -627px 0px; }
+            67%  { background-position: -836px 0px; }
+            83%  { background-position:-1045px 0px; }
+        }
     </style>
 </head>
 <body>
@@ -565,6 +586,17 @@
     </form>
 
     <div class="footer-stripe"></div>
+
+    <!-- Success state (shown after submit) -->
+    <div id="successState" style="display:none;margin-top:0;">
+        <div class="form-body" style="text-align:center;padding:40px 24px;">
+            <div class="ww-sprite"></div>
+            <div id="successMsg" style="font-family:'Oswald',sans-serif;font-size:18px;font-weight:600;color:#EE3B43;letter-spacing:1px;text-transform:uppercase;margin-top:12px;line-height:1.6;"></div>
+            <div style="font-family:'Source Sans 3',sans-serif;font-size:13px;color:#888;margin-top:8px;line-height:1.6;">Sit tight — a B2V runner will be assigned shortly.<br>You'll get an email once your runner is on the way.</div>
+        </div>
+        <div class="footer-stripe"></div>
+    </div>
+
 </div>
 
 <script>
@@ -873,6 +905,16 @@
             reader.onerror = () => reject(new Error('Read failed'));
             reader.readAsDataURL(file);
         });
+    }
+
+    // ── Show success state ──
+    function showSuccess(name) {
+        document.getElementById('deliveryForm').style.display = 'none';
+        document.querySelector('.footer-stripe').style.display = 'none';
+        const s = document.getElementById('successState');
+        s.style.display = 'block';
+        document.getElementById('successMsg').textContent =
+            'We got your order' + (name ? ', ' + name : '') + '!';
     }
 </script>
 
