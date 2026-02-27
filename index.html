@@ -737,79 +737,72 @@
     async function handleSubmit(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.textContent = 'Sending…';
         btn.disabled = true;
 
-        const form = document.getElementById('deliveryForm');
-        const data = new FormData(form);
-
-        // ── Convert receipt to JPEG before encoding ──
-        let receiptBase64 = '';
-        let receiptMime   = 'image/jpeg';
-        let receiptName   = '';
+        const form     = document.getElementById('deliveryForm');
+        const formData = new FormData(form);
         const fileInput = document.getElementById('receiptFile');
-        if (fileInput.files && fileInput.files[0]) {
-            const file = fileInput.files[0];
-            receiptName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
-            try {
-                receiptBase64 = await convertToJpeg(file);
-                if (file.type === 'application/pdf') {
-                    receiptMime = 'application/pdf';
-                    receiptName = file.name;
-                }
-            } catch (convErr) {
-                console.warn('JPEG conversion failed, using raw file:', convErr);
-                receiptBase64 = await readAsBase64(file);
-                receiptMime   = file.type || 'application/octet-stream';
-                receiptName   = file.name;
-            }
-        }
-
-        const payload = {
-            deliveryTime:  data.get('deliveryTime'),
-            address:       data.get('address'),
-            firstName:     data.get('firstName'),
-            lastName:      data.get('lastName'),
-            phone:         data.get('phone'),
-            email:         data.get('email'),
-            questions:     data.get('questions') || '',
-            timestamp:     new Date().toLocaleString(),
-            receiptBase64: receiptBase64,
-            receiptMime:   receiptMime,
-            receiptName:   receiptName
-        };
 
         try {
-            // Use a hidden iframe as the POST target so the page doesn't redirect.
-            // Apps Script handles standard form POSTs perfectly — no CORS issues.
-            const iframe = document.createElement('iframe');
-            iframe.name  = 'submitTarget';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
+            // ── Step 1: Upload receipt directly to Drive via Apps Script ──
+            btn.textContent = 'Uploading receipt…';
+            let receiptUrl = '';
 
-            const hiddenForm = document.createElement('form');
-            hiddenForm.method  = 'POST';
-            hiddenForm.action  = APPS_SCRIPT_URL;
-            hiddenForm.target  = 'submitTarget';
-            hiddenForm.style.display = 'none';
+            if (fileInput.files && fileInput.files[0]) {
+                const file     = fileInput.files[0];
+                const isPdf    = file.type === 'application/pdf';
+                const fileName = file.name.replace(/\.[^.]+$/, '') + (isPdf ? '.pdf' : '.jpg');
 
-            // Add each payload key as a hidden input
-            Object.entries(payload).forEach(([key, val]) => {
-                const input = document.createElement('input');
-                input.type  = 'hidden';
-                input.name  = key;
-                input.value = val;
-                hiddenForm.appendChild(input);
+                // Convert image to JPEG, or read PDF as-is
+                let base64;
+                if (isPdf) {
+                    base64 = await readAsBase64(file);
+                } else {
+                    base64 = await convertToJpegBase64(file);
+                }
+
+                // POST as JSON to ?action=upload — text/plain avoids CORS preflight
+                const uploadRes = await fetch(APPS_SCRIPT_URL + '?action=upload', {
+                    method:  'POST',
+                    mode:    'cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body:    JSON.stringify({
+                        fileName: fileName,
+                        mimeType: isPdf ? 'application/pdf' : 'image/jpeg',
+                        base64:   base64
+                    })
+                });
+                const uploadData = await uploadRes.json();
+                receiptUrl = uploadData.url || '';
+                Logger.log && Logger.log('receiptUrl: ' + receiptUrl);
+            }
+
+            // ── Step 2: Submit order data (no binary, just text fields) ──
+            btn.textContent = 'Submitting order…';
+
+            const payload = {
+                deliveryTime: formData.get('deliveryTime'),
+                address:      formData.get('address'),
+                firstName:    formData.get('firstName'),
+                lastName:     formData.get('lastName'),
+                phone:        formData.get('phone'),
+                email:        formData.get('email'),
+                questions:    formData.get('questions') || '',
+                timestamp:    new Date().toLocaleString(),
+                receiptUrl:   receiptUrl   // just a URL now, no base64
+            };
+
+            const orderRes = await fetch(APPS_SCRIPT_URL, {
+                method:  'POST',
+                mode:    'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body:    JSON.stringify(payload)
             });
 
-            document.body.appendChild(hiddenForm);
-            hiddenForm.submit();
-
-            // Show success immediately — we can't read the response due to CORS
-            // but Apps Script will process it successfully
             showSuccess(payload.firstName);
 
         } catch (err) {
+            console.error('Submit error:', err);
             btn.textContent = 'Error — Try Again';
             btn.style.background = '#c0392b';
             btn.disabled = false;
@@ -868,14 +861,9 @@
         `;
     }
 
-    // ── Convert any image to JPEG via Canvas ────────────────────────────────
-    // Handles JPG, PNG, WebP, HEIC, GIF — PDFs are passed through as-is
-    function convertToJpeg(file) {
+    // ── Convert image to JPEG and return base64 string ─────────────────────
+    function convertToJpegBase64(file) {
         return new Promise((resolve, reject) => {
-            if (file.type === 'application/pdf') {
-                readAsBase64(file).then(resolve).catch(reject);
-                return;
-            }
             const img    = new Image();
             const objUrl = URL.createObjectURL(file);
             img.onload = () => {
@@ -898,7 +886,7 @@
         });
     }
 
-    // ── Read file as raw base64 (fallback) ──────────────────────────────────
+    // ── Read file as raw base64 (for PDFs) ──────────────────────────────────
     function readAsBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
