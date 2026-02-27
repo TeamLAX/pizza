@@ -744,16 +744,16 @@
         const fileInput = document.getElementById('receiptFile');
 
         try {
-            // ── Step 1: Upload receipt directly to Drive via Apps Script ──
-            btn.textContent = 'Uploading receipt…';
-            let receiptUrl = '';
+            // Generate a unique token to link the receipt upload with the order
+            const token = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
+            // ── Step 1: Upload receipt (fire-and-forget, no-cors) ────────
             if (fileInput.files && fileInput.files[0]) {
+                btn.textContent = 'Uploading receipt…';
                 const file     = fileInput.files[0];
                 const isPdf    = file.type === 'application/pdf';
                 const fileName = file.name.replace(/\.[^.]+$/, '') + (isPdf ? '.pdf' : '.jpg');
 
-                // Convert image to JPEG, or read PDF as-is
                 let base64;
                 if (isPdf) {
                     base64 = await readAsBase64(file);
@@ -761,23 +761,26 @@
                     base64 = await convertToJpegBase64(file);
                 }
 
-                // POST as JSON to ?action=upload — text/plain avoids CORS preflight
-                const uploadRes = await fetch(APPS_SCRIPT_URL + '?action=upload', {
+                // Fire-and-forget — no-cors, no response needed
+                // Apps Script stores the file keyed by token; order POST links them
+                fetch(APPS_SCRIPT_URL, {
                     method:  'POST',
-                    mode:    'cors',
+                    mode:    'no-cors',
                     headers: { 'Content-Type': 'text/plain' },
                     body:    JSON.stringify({
+                        action:   'upload',
+                        token:    token,
                         fileName: fileName,
                         mimeType: isPdf ? 'application/pdf' : 'image/jpeg',
                         base64:   base64
                     })
                 });
-                const uploadData = await uploadRes.json();
-                receiptUrl = uploadData.url || '';
-                Logger.log && Logger.log('receiptUrl: ' + receiptUrl);
+
+                // Brief pause so the upload POST fires before the order POST
+                await new Promise(r => setTimeout(r, 800));
             }
 
-            // ── Step 2: Submit order data (no binary, just text fields) ──
+            // ── Step 2: Submit order with the same token ─────────────────
             btn.textContent = 'Submitting order…';
 
             const payload = {
@@ -789,10 +792,10 @@
                 email:        formData.get('email'),
                 questions:    formData.get('questions') || '',
                 timestamp:    new Date().toLocaleString(),
-                receiptUrl:   receiptUrl   // just a URL now, no base64
+                token:        token   // Apps Script uses this to find the receipt
             };
 
-            const orderRes = await fetch(APPS_SCRIPT_URL, {
+            fetch(APPS_SCRIPT_URL, {
                 method:  'POST',
                 mode:    'no-cors',
                 headers: { 'Content-Type': 'text/plain' },
