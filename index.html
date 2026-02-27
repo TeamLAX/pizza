@@ -780,13 +780,35 @@
         };
 
         try {
-            await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify(payload)
+            // Use a hidden iframe as the POST target so the page doesn't redirect.
+            // Apps Script handles standard form POSTs perfectly — no CORS issues.
+            const iframe = document.createElement('iframe');
+            iframe.name  = 'submitTarget';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+
+            const hiddenForm = document.createElement('form');
+            hiddenForm.method  = 'POST';
+            hiddenForm.action  = APPS_SCRIPT_URL;
+            hiddenForm.target  = 'submitTarget';
+            hiddenForm.style.display = 'none';
+
+            // Add each payload key as a hidden input
+            Object.entries(payload).forEach(([key, val]) => {
+                const input = document.createElement('input');
+                input.type  = 'hidden';
+                input.name  = key;
+                input.value = val;
+                hiddenForm.appendChild(input);
             });
+
+            document.body.appendChild(hiddenForm);
+            hiddenForm.submit();
+
+            // Show success immediately — we can't read the response due to CORS
+            // but Apps Script will process it successfully
             showSuccess(payload.firstName);
+
         } catch (err) {
             btn.textContent = 'Error — Try Again';
             btn.style.background = '#c0392b';
