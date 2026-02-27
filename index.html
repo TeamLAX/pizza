@@ -745,95 +745,76 @@
 
         try {
             const token = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+            const CHUNK = 30000; // ~30KB per chunk — safely under Apps Script's 50KB field limit
 
-            // ── Step 1: Upload receipt via hidden iframe form (no CORS, no size limit) ──
-            if (fileInput.files && fileInput.files[0]) {
-                btn.textContent = 'Uploading receipt…';
-                const file  = fileInput.files[0];
-                const isPdf = file.type === 'application/pdf';
-
-                // Convert to JPEG base64 (or raw base64 for PDF)
-                const base64   = isPdf ? await readAsBase64(file) : await convertToJpegBase64(file);
-                const fileName = file.name.replace(/\.[^.]+$/, '') + (isPdf ? '.pdf' : '.jpg');
-                const mimeType = isPdf ? 'application/pdf' : 'image/jpeg';
-
-                // Build a hidden iframe + form — this is the only truly universal
-                // cross-origin POST method that works on all mobile browsers with no size limit
-                await new Promise((resolve) => {
-                    const iframe = document.createElement('iframe');
-                    iframe.name  = 'uploadFrame_' + token;
+            // ── Helper: send one iframe form POST and wait for it ────────
+            function iframePost(fields) {
+                return new Promise((resolve) => {
+                    const frameName = 'f_' + Math.random().toString(36).slice(2);
+                    const iframe    = document.createElement('iframe');
+                    iframe.name     = frameName;
                     iframe.style.display = 'none';
-                    iframe.onload = () => resolve();   // fires when Apps Script responds
+                    iframe.onload   = () => resolve();
                     document.body.appendChild(iframe);
 
-                    const form    = document.createElement('form');
-                    form.method   = 'POST';
-                    form.action   = APPS_SCRIPT_URL;
-                    form.target   = iframe.name;
+                    const form   = document.createElement('form');
+                    form.method  = 'POST';
+                    form.action  = APPS_SCRIPT_URL;
+                    form.target  = frameName;
                     form.style.display = 'none';
 
-                    [['action',   'upload'],
-                     ['token',    token],
-                     ['fileName', fileName],
-                     ['mimeType', mimeType],
-                     ['base64',   base64]
-                    ].forEach(([k, v]) => {
+                    Object.entries(fields).forEach(([k, v]) => {
                         const inp = document.createElement('input');
                         inp.type  = 'hidden';
                         inp.name  = k;
-                        inp.value = v;
+                        inp.value = v != null ? String(v) : '';
                         form.appendChild(inp);
                     });
 
                     document.body.appendChild(form);
                     form.submit();
-
-                    // Fallback resolve after 5s in case iframe onload doesn't fire
-                    setTimeout(resolve, 5000);
+                    setTimeout(resolve, 6000); // fallback
                 });
             }
 
-            // ── Step 2: Submit order fields via hidden iframe form ────────
+            // ── Step 1: Upload receipt in chunks ─────────────────────────
+            if (fileInput.files && fileInput.files[0]) {
+                btn.textContent = 'Uploading receipt…';
+                const file  = fileInput.files[0];
+                const isPdf = file.type === 'application/pdf';
+                const base64   = isPdf ? await readAsBase64(file) : await convertToJpegBase64(file);
+                const fileName = file.name.replace(/\.[^.]+$/, '') + (isPdf ? '.pdf' : '.jpg');
+                const mimeType = isPdf ? 'application/pdf' : 'image/jpeg';
+                const total    = Math.ceil(base64.length / CHUNK);
+
+                for (let i = 0; i < total; i++) {
+                    btn.textContent = 'Uploading receipt ' + (i + 1) + '/' + total + '…';
+                    await iframePost({
+                        action:  'chunk',
+                        token:   token,
+                        index:   i,
+                        total:   total,
+                        chunk:   base64.slice(i * CHUNK, (i + 1) * CHUNK),
+                        // Only send metadata with first chunk
+                        fileName: i === 0 ? fileName : '',
+                        mimeType: i === 0 ? mimeType : ''
+                    });
+                }
+            }
+
+            // ── Step 2: Submit order ──────────────────────────────────────
             btn.textContent = 'Submitting order…';
-
-            await new Promise((resolve) => {
-                const iframe2 = document.createElement('iframe');
-                iframe2.name  = 'orderFrame_' + token;
-                iframe2.style.display = 'none';
-                iframe2.onload = () => resolve();
-                document.body.appendChild(iframe2);
-
-                const form2    = document.createElement('form');
-                form2.method   = 'POST';
-                form2.action   = APPS_SCRIPT_URL;
-                form2.target   = iframe2.name;
-                form2.style.display = 'none';
-
-                const fields = {
-                    action:       'order',
-                    token:        token,
-                    deliveryTime: formData.get('deliveryTime'),
-                    address:      formData.get('address'),
-                    firstName:    formData.get('firstName'),
-                    lastName:     formData.get('lastName'),
-                    phone:        formData.get('phone'),
-                    email:        formData.get('email'),
-                    questions:    formData.get('questions') || '',
-                    timestamp:    new Date().toLocaleString()
-                };
-
-                Object.entries(fields).forEach(([k, v]) => {
-                    const inp = document.createElement('input');
-                    inp.type  = 'hidden';
-                    inp.name  = k;
-                    inp.value = v || '';
-                    form2.appendChild(inp);
-                });
-
-                document.body.appendChild(form2);
-                form2.submit();
-
-                setTimeout(resolve, 5000);
+            await iframePost({
+                action:       'order',
+                token:        token,
+                deliveryTime: formData.get('deliveryTime'),
+                address:      formData.get('address'),
+                firstName:    formData.get('firstName'),
+                lastName:     formData.get('lastName'),
+                phone:        formData.get('phone'),
+                email:        formData.get('email'),
+                questions:    formData.get('questions') || '',
+                timestamp:    new Date().toLocaleString()
             });
 
             showSuccess(formData.get('firstName'));
