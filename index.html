@@ -673,24 +673,36 @@
         }
 
         scroll.addEventListener('scroll', updateActive);
-        // Initialize
+
+        // Restore previously selected time after rebuild
+        if (selectedTimeValue) {
+            const match = scroll.querySelector(`[data-value="${selectedTimeValue}"]`);
+            if (match) {
+                // Use setTimeout so DOM has painted before we scroll
+                setTimeout(() => {
+                    const targetTop = match.offsetTop - 50;
+                    scroll.scrollTo({ top: targetTop, behavior: 'auto' });
+                    updateActive();
+                }, 50);
+                return; // skip the default scroll-to-top below
+            }
+        }
+
+        // No prior selection — scroll to top and select first slot
         requestAnimationFrame(() => {
             scroll.scrollTop = 0;
             updateActive();
         });
-
-        // Restore selection if still available
-        if (selectedTimeValue) {
-            const match = scroll.querySelector(`[data-value="${selectedTimeValue}"]`);
-            if (match) {
-                const targetTop = match.offsetTop - 50;
-                scroll.scrollTo({ top: targetTop, behavior: 'auto' });
-            }
-        }
     }
 
     populateWheel();
-    setInterval(populateWheel, 30000);
+
+    // Refresh available slots every 30s but preserve the user's selection
+    setInterval(() => {
+        const saved = selectedTimeValue;
+        populateWheel();
+        // populateWheel restores saved via selectedTimeValue automatically
+    }, 30000);
 
     // ── Phone formatting ──
     document.getElementById('phone').addEventListener('input', function () {
